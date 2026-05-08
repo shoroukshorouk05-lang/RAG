@@ -139,15 +139,16 @@ def build_rag_chain():
         persist_directory="VDB",
         embedding_function=embedding_model
     )
-        retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
+    # تم ضبط المسافة هنا لإصلاح IndentationError
+    retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
     
     # جلب المفتاح من Secrets (الطريقة الصحيحة لـ Streamlit Cloud)
     api_key = st.secrets.get("GOOGLE_API_KEY")
     
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash", # تصحيح الاسم: لا يوجد حالياً 2.5، النسخة المستقرة هي 1.5
+        model="gemini-1.5-flash",
         temperature=0.2,
-        google_api_key=api_key # تمرير المفتاح المسحوب من السيكرتس
+        google_api_key=api_key 
     )
 
     system_prompt = (
