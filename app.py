@@ -145,12 +145,6 @@ def build_rag_chain():
     # جلب المفتاح من Secrets (الطريقة الصحيحة لـ Streamlit Cloud)
     api_key = st.secrets.get("GOOGLE_API_KEY")
     
-       llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
-        temperature=0.2,
-        google_api_key=api_key,
-        convert_system_message_to_human=True # أضف هذا السطر لحل مشكلة الـ ValueError
-    )
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=0.2,
