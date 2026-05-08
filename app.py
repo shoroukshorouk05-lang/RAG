@@ -100,16 +100,12 @@ def build_rag_chain():
     embedding_model = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
     vector_store = Chroma(persist_directory=vdb_path, embedding_function=embedding_model)
     retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
-    
-    api_key = st.secrets.get("GOOGLE_API_KEY")
-    
-    # هنا تم ضبط المحاذاة بدقة
+        
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-2.5-flash",
         temperature=0.2,
-        google_api_key=api_key,
-        convert_system_message_to_human=True
-    )
+        google_api_key=st.secrets["GOOGLE_API_KEY"]
+    )  
     
     system_prompt = (
         "You are AGRIRA, a professional Agriculture Assistant. "
