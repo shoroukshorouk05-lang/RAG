@@ -139,23 +139,27 @@ if query:
         try:
             result = rag_chain.invoke({"input": query})
             answer = result["answer"]
-            st.session_state.messages.append({"role": "assistant", "content": answer})
-            
-            with st.chat_message("assistant"):
-                st.markdown(answer)
-                
-                # فحص المراجع وعرضها
-                if result.get("context"):
-                    st.markdown("---")
-                    st.markdown("<small>📚 <b>المراجع</b></small>", unsafe_allow_html=True)
-                    seen_citations = set()
-                    for doc in result["context"]:
-                        citation = build_apa_citation(doc.metadata)                
-                        source = doc.metadata.get("source")
-                        if "Untitled" in citation and source:
-                            citation += f" ({source})"
-                        if citation not in seen_citations:
-                            seen_citations.add(citation)
-                            st.caption(f"📍 {citation}")
+           result = rag_chain.invoke({"input": query})
+answer = result["answer"]
+
+citations_text = ""
+if result.get("context"):
+    seen_citations = set()
+    lines = []
+    for doc in result["context"]:
+        citation = build_apa_citation(doc.metadata)
+        source = doc.metadata.get("source")
+        if "Untitled" in citation and source:
+            citation += f" ({source})"
+        if citation not in seen_citations:
+            seen_citations.add(citation)
+            lines.append(f"📍 {citation}")
+    if lines:
+        citations_text = "\n\n---\n📚 **المراجع**\n\n" + "\n\n".join(lines)
+
+full_content = answer + citations_text
+st.session_state.messages.append({"role": "assistant", "content": full_content})  
+with st.chat_message("assistant"):
+    st.markdown(full_content)
         except Exception as e:
             st.error(f"Error: {e}")
