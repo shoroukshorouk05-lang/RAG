@@ -132,8 +132,8 @@ if query:
     with st.chat_message("user"):
         st.markdown(query)
     st.session_state.messages.append({"role": "user", "content": query})
-    
-       with st.spinner("AGRIRA is thinking..."):
+
+    with st.spinner("AGRIRA is thinking..."):
         try:
             result = rag_chain.invoke({"input": query})
             answer = result["answer"]
@@ -151,4 +151,3 @@ if query:
                             st.caption(citation)
         except Exception as e:
             st.error(f"Error: {e}")
-
