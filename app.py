@@ -133,21 +133,23 @@ if query:
         st.markdown(query)
     st.session_state.messages.append({"role": "user", "content": query})
     
-    with st.spinner("AGRIRA is thinking..."):
+       with st.spinner("AGRIRA is thinking..."):
         try:
             result = rag_chain.invoke({"input": query})
             answer = result["answer"]
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
                 st.markdown(answer)
+                # الأسطر التالية تم إزاحتها لليمين لتكون داخل جملة الـ if
                 if result.get("context"):
-                st.markdown("---")
-                st.markdown("<small>📚 <b>References</b></small>", unsafe_allow_html=True)
-                seen_citations = set()
-                for doc in result["context"]:
-                    citation = build_apa_citation(doc.metadata)
-                    if citation not in seen_citations:
-                        seen_citations.add(citation)
-                        st.caption(citation)
+                    st.markdown("---")
+                    st.markdown("<small>📚 <b>References</b></small>", unsafe_allow_html=True)
+                    seen_citations = set()
+                    for doc in result["context"]:
+                        citation = build_apa_citation(doc.metadata)
+                        if citation not in seen_citations:
+                            seen_citations.add(citation)
+                            st.caption(citation)
         except Exception as e:
             st.error(f"Error: {e}")
+
