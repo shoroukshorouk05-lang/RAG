@@ -30,7 +30,7 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    @import url('https://googleapis.com');
 
     html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Cairo', sans-serif;
@@ -118,7 +118,7 @@ with st.chat_message("assistant"):
     <div class="welcome-list-item">Improving land productivity sustainably</div>
     """, unsafe_allow_html=True)
 
-# ── الأصلي كما هو بدون تغيير ─────────────────────────────────────────────
+# ── المنطق البرمجي ────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -134,23 +134,29 @@ def build_apa_citation(metadata):
 
 @st.cache_resource
 def build_rag_chain():
+    # إصلاح مسار المجلد ليعمل على السيرفر (Linux Path Fix)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    vdb_path = os.path.join(current_dir, "VDB")
+    
     embedding_model = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+    
     vector_store = Chroma(
-        persist_directory="VDB",
+        persist_directory=vdb_path,
         embedding_function=embedding_model
     )
-    # تم ضبط المسافة هنا لإصلاح IndentationError
+    
     retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
     
-    # جلب المفتاح من Secrets (الطريقة الصحيحة لـ Streamlit Cloud)
+    # جلب المفتاح من Secrets
     api_key = st.secrets.get("GOOGLE_API_KEY")
     
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-1.5-flash", 
         temperature=0.2,
         google_api_key=api_key,
-        convert_system_message_to_human=True # أضف هذا السطر لحل مشكلة الـ ValueError
+        convert_system_message_to_human=True 
     )
+    
     system_prompt = (
         "You are AGRIRA, a professional Agriculture Assistant. "
         "Use the retrieved context about agriculture to answer the user's question. "
@@ -167,28 +173,33 @@ def build_rag_chain():
 
 rag_chain = build_rag_chain()
 
-# Display chat history
+# عرض تاريخ المحادثة
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# FIX 6: Moved session_state.append calls BEFORE rendering the assistant message
+# مدخلات المستخدم
 query = st.chat_input("Ask about agriculture topics...")
 if query:
     with st.chat_message("user"):
         st.markdown(query)
     st.session_state.messages.append({"role": "user", "content": query})
+    
     with st.spinner("AGRIRA is thinking..."):
-        result = rag_chain.invoke({"input": query})
-        answer = result["answer"]
-    st.session_state.messages.append({"role": "assistant", "content": answer})
-    with st.chat_message("assistant"):
-        st.markdown(answer)
-        st.markdown("---")
-        st.markdown("<small>📚 <b>References</b></small>", unsafe_allow_html=True)
-        seen_citations = set()
-        for doc in result["context"]:
-            citation = build_apa_citation(doc.metadata)
-            if citation not in seen_citations:
-                seen_citations.add(citation)
-                st.caption(citation)
+        try:
+            result = rag_chain.invoke({"input": query})
+            answer = result["answer"]
+            
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            with st.chat_message("assistant"):
+                st.markdown(answer)
+                st.markdown("---")
+                st.markdown("<small>📚 <b>References</b></small>", unsafe_allow_html=True)
+                seen_citations = set()
+                for doc in result["context"]:
+                    citation = build_apa_citation(doc.metadata)
+                    if citation not in seen_citations:
+                        seen_citations.add(citation)
+                        st.caption(citation)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
