@@ -62,7 +62,7 @@ def build_rag_chain():
     retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
     
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash", 
+        model="gemini-2.5-flash", 
         temperature=0.2, 
         google_api_key=api_key,
         convert_system_message_to_human=True
