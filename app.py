@@ -140,7 +140,6 @@ if query:
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
                 st.markdown(answer)
-                # الأسطر التالية تم إزاحتها لليمين لتكون داخل جملة الـ if
                 if result.get("context"):
                     st.markdown("---")
                     st.markdown("<small>📚 <b>References</b></small>", unsafe_allow_html=True)
