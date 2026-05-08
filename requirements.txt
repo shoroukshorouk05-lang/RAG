@@ -5,4 +5,5 @@ langchain-chroma
 langchain-huggingface
 langchain-google-genai
 sentence-transformers
-chromadb
+chromadb==0.5.3
+
