@@ -8,7 +8,7 @@ from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 
-# ── 1. تحميل اللوجو ─────────────────────────────────────────────────────────
+# ── 1. Load Logo ─────────────────────────────────────────────────────────
 def get_logo_base64(path="logo.png"):
     try:
         with open(path, "rb") as f:
@@ -20,7 +20,7 @@ def get_logo_base64(path="logo.png"):
 logo_src = get_logo_base64()
 logo_html = f'<img src="{logo_src}" style="height:80px; margin-bottom:10px;">' if logo_src else "🌱"
 
-# ── 2. إعدادات الصفحة و CSS ──────────────────────────────────────────────────
+# ── 2. Page Config & CSS ──────────────────────────────────────────────────
 st.set_page_config(page_title="AGRIRA - Intelligent Agriculture RAG", page_icon="🌱")
 
 st.markdown("""
@@ -37,7 +37,7 @@ st.markdown("""
 
 st.markdown(f'<div class="custom-header">{logo_html}<h2>AGRIRA</h2><p>Intelligent Agriculture RAG 🌿</p></div>', unsafe_allow_html=True)
 
-# ── 3. وظائف المراجع (APA Citation) ──────────────────────────────────────────
+# ── 3. Citation Function ──────────────────────────────────────────
 def build_apa_citation(metadata):
     author = metadata.get("author", "Unknown Author")
     year = metadata.get("year", "n.d.")
@@ -48,32 +48,32 @@ def build_apa_citation(metadata):
         citation += f" p. {int(page) + 1}"
     return citation
 
-# ── 4. بناء الـ RAG Chain ────────────────────────────────────────────────────
+# ── 4. RAG Chain Setup ────────────────────────────────────────────────────
 @st.cache_resource
 def build_rag_chain():
-    # سحب المفتاح من Secrets
     api_key = os.environ.get("GOOGLE_API_KEY")
     if not api_key:
         st.error("Please set the GOOGLE_API_KEY in Streamlit Secrets.")
         st.stop()
-llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
-        temperature=0.2,
-        google_api_key=api_key,
-        convert_system_message_to_human=True
-    )
+    
+    # Corrected indentation and removed duplicate LLM definition
     embedding_model = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
     vector_store = Chroma(persist_directory="VDB", embedding_function=embedding_model)
     retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
     
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2, google_api_key=api_key)
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-1.5-flash", 
+        temperature=0.2, 
+        google_api_key=api_key,
+        convert_system_message_to_human=True
+    )
     
     system_prompt = (
         "You are AGRIRA, a professional Agriculture Assistant. "
         "Use the retrieved context about agriculture to answer the user's question. "
         "If the answer is not in the context, say that you don't know.\n\nContext: {context}"
     )
-    # تعديل مهم لضمان عمل الـ Input بشكل صحيح
+    
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
         ("human", "{input}"),
@@ -84,11 +84,11 @@ llm = ChatGoogleGenerativeAI(
 
 rag_chain = build_rag_chain()
 
-# ── 5. إدارة المحادثة ────────────────────────────────────────────────────────
+# ── 5. Chat Management ────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# رسالة الترحيب الأولى
+# First Welcome Message
 if not st.session_state.messages:
     with st.chat_message("assistant"):
         st.markdown("""
@@ -99,23 +99,21 @@ if not st.session_state.messages:
         <div class="welcome-list-item">Optimizing water consumption</div>
         """, unsafe_allow_html=True)
 
-# عرض الرسائل السابقة
+# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# استقبال سؤال المستخدم
+# User Input
 query = st.chat_input("Ask about agriculture topics...")
 if query:
     with st.chat_message("user"): 
         st.markdown(query)
     
-    # حفظ سؤال المستخدم في الجلسة
     st.session_state.messages.append({"role": "user", "content": query})
     
     with st.spinner("AGRIRA is thinking..."):
         try:
-            # تنفيذ البحث والإجابة
             result = rag_chain.invoke({"input": query})
             answer = result["answer"]
             
@@ -130,10 +128,7 @@ if query:
                         seen_citations.add(citation)
                         st.caption(citation)
             
-            # حفظ إجابة البوت في الجلسة
             st.session_state.messages.append({"role": "assistant", "content": answer})
             
         except Exception as e:
             st.error(f"Error: {e}")
-
-    st.session_state.messages.append({"role": "assistant", "content": answer})
