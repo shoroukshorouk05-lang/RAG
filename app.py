@@ -128,12 +128,14 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 query = st.chat_input("Ask about agriculture topics...")
+
 if query:
     with st.chat_message("user"):
         st.markdown(query)
+    
     st.session_state.messages.append({"role": "user", "content": query})
-
-      with st.spinner("AGRIRA is thinking..."):
+    
+    with st.spinner("AGRIRA is thinking..."):
         try:
             result = rag_chain.invoke({"input": query})
             answer = result["answer"]
@@ -148,16 +150,13 @@ if query:
                     st.markdown("<small>📚 <b>المراجع</b></small>", unsafe_allow_html=True)
                     seen_citations = set()
                     for doc in result["context"]:
-                        # محاولة جلب الاستشهاد أو اسم الملف كبديل
                         citation = build_apa_citation(doc.metadata)
-                        if not doc.metadata.get("title"): # إذا لم يجد عنواناً، استخدم اسم المصدر
+                        # إذا لم يجد عنواناً، يستخدم اسم الملف الأصلي
+                        if not doc.metadata.get("title"):
                             citation = doc.metadata.get("source", "مصدر غير معروف")
                         
                         if citation not in seen_citations:
                             seen_citations.add(citation)
                             st.caption(f"📍 {citation}")
-        except Exception as e:
-            st.error(f"Error: {e}")
-
         except Exception as e:
             st.error(f"Error: {e}")
