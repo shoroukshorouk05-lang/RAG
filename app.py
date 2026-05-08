@@ -150,11 +150,10 @@ if query:
                     st.markdown("<small>📚 <b>المراجع</b></small>", unsafe_allow_html=True)
                     seen_citations = set()
                     for doc in result["context"]:
-                        citation = build_apa_citation(doc.metadata)
-                        # إذا لم يجد عنواناً، يستخدم اسم الملف الأصلي
-                        if not doc.metadata.get("title"):
-                            citation = doc.metadata.get("source", "مصدر غير معروف")
-                        
+                        citation = build_apa_citation(doc.metadata)                
+                        source = doc.metadata.get("source")
+                        if "Untitled" in citation and source:
+                            citation += f" ({source})"
                         if citation not in seen_citations:
                             seen_citations.add(citation)
                             st.caption(f"📍 {citation}")
