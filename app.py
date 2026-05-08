@@ -56,7 +56,12 @@ def build_rag_chain():
     if not api_key:
         st.error("Please set the GOOGLE_API_KEY in Streamlit Secrets.")
         st.stop()
-
+llm = ChatGoogleGenerativeAI(
+        model="gemini-1.5-flash",
+        temperature=0.2,
+        google_api_key=api_key,
+        convert_system_message_to_human=True
+    )
     embedding_model = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
     vector_store = Chroma(persist_directory="VDB", embedding_function=embedding_model)
     retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 4})
