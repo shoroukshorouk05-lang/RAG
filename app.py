@@ -128,7 +128,6 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 query = st.chat_input("Ask about agriculture topics...")
-
 if query:
     with st.chat_message("user"):
         st.markdown(query)
@@ -137,29 +136,29 @@ if query:
     
     with st.spinner("AGRIRA is thinking..."):
         try:
+            # تم تصحيح المحاذاة هنا
             result = rag_chain.invoke({"input": query})
             answer = result["answer"]
-           result = rag_chain.invoke({"input": query})
-answer = result["answer"]
 
-citations_text = ""
-if result.get("context"):
-    seen_citations = set()
-    lines = []
-    for doc in result["context"]:
-        citation = build_apa_citation(doc.metadata)
-        source = doc.metadata.get("source")
-        if "Untitled" in citation and source:
-            citation += f" ({source})"
-        if citation not in seen_citations:
-            seen_citations.add(citation)
-            lines.append(f"📍 {citation}")
-    if lines:
-        citations_text = "\n\n---\n📚 **المراجع**\n\n" + "\n\n".join(lines)
+            citations_text = ""
+            if result.get("context"):
+                seen_citations = set()
+                lines = []
+                for doc in result["context"]:
+                    citation = build_apa_citation(doc.metadata)
+                    source = doc.metadata.get("source")
+                    if "Untitled" in citation and source:
+                        citation += f" ({source})"
+                    if citation not in seen_citations:
+                        seen_citations.add(citation)
+                        lines.append(f"📍 {citation}")
+                if lines:
+                    citations_text = "\n\n---\n📚 **المراجع**\n\n" + "\n\n".join(lines)
 
-full_content = answer + citations_text
-st.session_state.messages.append({"role": "assistant", "content": full_content})  
-with st.chat_message("assistant"):
-    st.markdown(full_content)
+            full_content = answer + citations_text
+            st.session_state.messages.append({"role": "assistant", "content": full_content})  
+            with st.chat_message("assistant"):
+                st.markdown(full_content)
+                
         except Exception as e:
             st.error(f"Error: {e}")
