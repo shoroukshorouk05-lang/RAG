@@ -140,7 +140,7 @@ if query:
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
                 st.markdown(answer)
-                if result.get("context")
+                :if result.get("context")
                 st.markdown("---")
                 st.markdown("<small>📚 <b>References</b></small>", unsafe_allow_html=True)
                 seen_citations = set()
