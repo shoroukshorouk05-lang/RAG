@@ -155,11 +155,13 @@ def build_rag_chain():
         convert_system_message_to_human=True
     )
     system_prompt = (
-        "You are AGRIRA, a professional Agriculture Assistant. "
-        "Use the following retrieved documents to answer the user's question. "
-        "Answer directly and helpfully based on the context. "
-        "Do not say you don't know if the context contains relevant information. "
-        "\n\nContext: {context}"
+    "You are AGRIRA, a professional Agriculture Assistant. "
+    "Detect the language of the user's question and always reply in the same language. "
+    "If the question is in Arabic, answer in Arabic. If in English, answer in English. "
+    "Use the following retrieved documents to answer the user's question. "
+    "Answer directly and helpfully based on the context. "
+    "Do not say you don't know if the context contains relevant information. "
+    "\n\nContext: {context}"
     )
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
